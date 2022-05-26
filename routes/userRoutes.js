@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const Registration = require('../model/registration');
 const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
@@ -16,7 +17,8 @@ var transporter = nodemailer.createTransport({
 router.post('/',async(req,res)=>{
     const body = req.body;
 
-    console.log(body.name, body.email, body.password);
+    try{
+        console.log(body.name, body.email, body.password);
 
     if(!body.name || !body.email || !body.password){
         res.status(200).json({
@@ -38,7 +40,17 @@ router.post('/',async(req,res)=>{
     //const hashedPassword = await bcrypt.hash(password, salt);
 
     user.password = await bcrypt.hash(user.password, salt);
-    user.save().then((doc)=>res.status(201).send(doc));
+    //user.save().then((doc)=>res.status(201).send(doc));
+
+    //set jwt token
+    let result = await user.save();
+    result = result.toObject();
+    jwt.sign({result},process.env.JWT_SECRET,{expiresIn: "2h"}, (err,token)=>{
+        if(err){
+            res.send({result:"something went wrong, plz try again"});
+        }
+        res.status(200).json({message:"valid password and successfully login",user, authtoken: token})
+    })
     //console.log("hash password: ",hashedPassword);
 
     // const user = await Registration.create({
@@ -76,6 +88,11 @@ router.post('/',async(req,res)=>{
         }
     });
 
+    }catch(error){
+        console.log(error);
+    }
+    
+
            
 })
 
@@ -87,8 +104,14 @@ router.post('/login',async(req,res)=>{
         const validPassword = await bcrypt.compare(body.password, user.password);
         console.log(validPassword);
         if(validPassword){
-            res.status(200).json({message:"valid password"})
-            console.log(user);
+            jwt.sign({user},process.env.JWT_SECRET,{expiresIn: "2h"},(err,token)=>{
+                if(err){
+                    res.send({result:"something went wrong, plz try again"});
+                }
+                res.status(200).json({message:"valid password and successfully login",user, authtoken: token})
+                console.log(user);
+            })
+            
         }else{
             res.status(400).json({error:"Invalid password"});
         }
