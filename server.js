@@ -1,3 +1,5 @@
+"use strict";
+
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -60,7 +62,7 @@ const port = process.env.PORT || 5000;
 app.use("/registration",userRoutes);
 
 app.get('/',(req,res)=>{
-    res.send("hello world");
+    res.send("hello world !");
 })
 
 
