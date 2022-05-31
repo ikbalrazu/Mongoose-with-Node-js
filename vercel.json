@@ -3,13 +3,19 @@
   "builds": [
     {
       "src": "./server.js",
-      "use": "@vercel/node"
+      "use": "@now/node-server"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/server.js"
+      "src": "/registration",
+      "dest": "/server.js",
+      "methods": ["POST"]
+    },
+    {
+      "src": "/registration/login",
+      "dest": "/server.js",
+      "methods": ["POST"]
     }
   ]
 }
